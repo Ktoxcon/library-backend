@@ -17,9 +17,7 @@ const MagazineSchema: Schema = new Schema(
   { versionKey: false }
 );
 
-const MagazineModel = mongoose.model<IMagazineModel>(
+export const MagazineModel = mongoose.model<IMagazineModel>(
   "magazine",
   MagazineSchema
 );
-
-export default MagazineModel;

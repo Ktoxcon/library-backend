@@ -8,7 +8,7 @@ const BookSchema: Schema = new Schema(
     edition: String,
     keyWords: [String],
     description: String,
-    themes: [String],
+    themes: { type: [String], default: [] },
     copies: { type: Number, default: 0 },
     disponibility: Number,
   },
@@ -17,6 +17,4 @@ const BookSchema: Schema = new Schema(
   }
 );
 
-const BookModel = mongoose.model<IBookModel>("book", BookSchema);
-
-export default BookModel;
+export const BookModel = mongoose.model<IBookModel>("book", BookSchema);
