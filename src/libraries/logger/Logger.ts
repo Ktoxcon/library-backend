@@ -14,12 +14,15 @@ export const initBanner = async () => {
 
   await figlet.text("Library", (err, banner) => {
     if (err) {
+      console.clear();
       console.log("EXPRESS SERVER UP");
       console.log("DB CONNECTION SUCCESS");
       return;
+    } else {
+      console.clear();
+      console.log(`${currentColor}${banner}`);
+      console.log("[✓] SERVER UP");
+      console.log("[✓] DB CONNECTION SUCCES");
     }
-    console.log(`${currentColor}${banner}`);
-    console.log("[✓] SERVER UP");
-    console.log("[✓] DB CONNECTION SUCCES");
   });
 };
