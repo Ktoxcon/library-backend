@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { IUserModel, UserModel } from "../../database";
-import { generatePassword, sign, verifyPassword } from "../../libraries";
+import { displayError, generatePassword } from "../../libraries";
 import { UserError } from "./error/UserError";
 import { HttpError } from "../../libraries";
 
@@ -22,29 +22,33 @@ const createUser = async (req: Request, res: Response): Promise<void> => {
 
     if (Boolean(userExists)) {
       res.status(500).send({ error: UserError.userAlreadyExistsError });
+      return;
+    } else {
+      const hashedPassword = await generatePassword(password);
+
+      if (!Boolean(hashedPassword)) {
+        res.status(500).send({ error: UserError.passwordHashingError });
+        return;
+      } else {
+        user.uid = uid;
+        user.name = name;
+        user.lastname = lastname;
+        user.username = username;
+        user.role = role;
+        user.password = hashedPassword as string;
+
+        const userSaved = await user.save();
+
+        if (!Boolean(userSaved)) {
+          res.status(500).send({ error: UserError.saveUserError });
+          return;
+        } else {
+          res.send({ userSaved, session: req.headers.authorization });
+        }
+      }
     }
-
-    const hashedPassword = await generatePassword(password);
-
-    if (!Boolean(hashedPassword)) {
-      res.status(500).send({ error: UserError.passwordHashingError });
-    }
-
-    user.uid = uid;
-    user.name = name;
-    user.lastname = lastname;
-    user.username = username;
-    user.role = role;
-    user.password = hashedPassword as string;
-
-    const userSaved = await user.save();
-
-    if (!Boolean(userSaved)) {
-      res.status(500).send({ error: UserError.saveUserError });
-    }
-
-    res.send({ userSaved, session: req.headers.authorization });
   } catch (err) {
+    displayError(err.name, err.message);
     res.send({ error: new HttpError(err.code, err.message) });
   }
 };
@@ -62,11 +66,13 @@ const updateUser = async (req: Request, res: Response): Promise<void> => {
 
     if (!Boolean(userUpdated)) {
       res.send({ error: UserError.updateUserError });
+      return;
+    } else {
+      res.send(userUpdated);
     }
-
-    res.send(userUpdated);
   } catch (err) {
-    res.send({ error: new HttpError(err.code, err.message) });
+    displayError(err.name, err.message);
+    res.status(500).send({ error: new HttpError(err.code, err.message) });
   }
 };
 
@@ -76,17 +82,20 @@ const deleteUser = async (req: Request, res: Response): Promise<void> => {
 
     if (!Boolean(userExists)) {
       res.status(500).send({ error: UserError.userDoesntExistsError });
+      return;
+    } else {
+      const userDeleted = await UserModel.findByIdAndDelete(userExists._id);
+
+      if (!Boolean(userDeleted)) {
+        res.status(500).send({ error: UserError.deleteUserError });
+        return;
+      }
+
+      res.send({ deleted: true });
     }
-
-    const userDeleted = await UserModel.findByIdAndDelete(userExists._id);
-
-    if (!Boolean(userDeleted)) {
-      res.status(500).send({ error: UserError.deleteUserError });
-    }
-
-    res.send({ deleted: true });
   } catch (err) {
-    res.send({ error: new HttpError(err.code, err.message) });
+    displayError(err.name, err.message);
+    res.status(500).send({ error: new HttpError(err.code, err.message) });
   }
 };
 
@@ -96,38 +105,41 @@ const getUsers = async (req: Request, res: Response): Promise<void> => {
 
     if (!Boolean(users)) {
       res.status(500).send({ error: UserError.getUsersError });
+      return;
+    } else {
+      res.send(users);
     }
-
-    res.send(users);
   } catch (err) {
-    res.send({ error: new HttpError(err.code, err.message) });
+    displayError(err.name, err.message);
+    res.status(500).send({ error: new HttpError(err.code, err.message) });
   }
 };
 
-const login = async (req: Request, res: Response): Promise<void> => {
+export const createDefaultUser = async (): Promise<boolean> => {
   try {
-    const { username, password } = req.body;
+    const admin = new UserModel();
+    admin.name = "admin";
+    admin.lastname = "admin";
+    admin.username = "admin";
+    admin.uid = "0";
+    admin.role = "admin";
+    admin.password = (await generatePassword("root")) as string;
 
-    const user = await UserModel.findOne({ username });
-    if (!Boolean(user)) {
-      res.send({ error: UserError.incorrectUsernameError });
+    const adminExists = await UserModel.findOne({ uid: "0" });
+
+    if (Boolean(adminExists)) {
+      return true;
     }
 
-    const isPasswordCorrect = await verifyPassword(password, user.password);
+    const adminCreated = await admin.save();
 
-    if (!Boolean(isPasswordCorrect)) {
-      res.send({ error: UserError.incorrectPasswordError });
+    if (Boolean(adminCreated)) {
+      return true;
     }
 
-    const authToken = await sign(user.toJSON());
-
-    if (!Boolean(authToken)) {
-      res.send({ error: UserError.LoginError });
-    }
-
-    res.send({ authToken });
+    return false;
   } catch (err) {
-    res.send({ error: new HttpError(err.code, err.message) });
+    displayError(err.name, err.message);
   }
 };
 
@@ -136,5 +148,4 @@ export const UserController = {
   updateUser,
   deleteUser,
   getUsers,
-  login,
 };
