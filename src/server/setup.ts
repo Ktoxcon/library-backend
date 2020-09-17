@@ -1,6 +1,7 @@
 import { configuration } from "../config";
 import { initDataBase } from "./database";
-import { initBanner } from "../libraries";
+import { initBanner, displayError } from "../libraries";
+import { createDefaultUser } from "../controller";
 import server from "./server";
 
 const { host, port } = configuration.get("server");
@@ -10,7 +11,10 @@ export const startServer = async () => {
     const dbInitialized = await initDataBase();
     if (dbInitialized) {
       server.listen(port, host);
-      await initBanner();
+      const isAdminCreated = await createDefaultUser();
+      await initBanner(isAdminCreated);
     }
-  } catch (err) {}
+  } catch (err) {
+    displayError(err.name, err.message, err.code);
+  }
 };
