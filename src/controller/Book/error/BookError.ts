@@ -5,7 +5,8 @@ enum BookErrorCode {
   updateBook = 205,
   deleteBook = 210,
   getBooks = 215,
-  bookDoesntExists = 220,
+  addCopy = 220,
+  bookDoesntExists = 230,
 }
 
 const saveBookError = new HttpError(
@@ -33,10 +34,16 @@ const bookDoesntExistsError = new HttpError(
   "The book whit that id doesnt exists"
 );
 
+const addCopyError = new HttpError(
+  BookErrorCode.addCopy,
+  "Error trying to add a new copy"
+);
+
 export const BookError = {
   saveBookError,
   updateBookError,
   deleteBookError,
   getBooksError,
+  addCopyError,
   bookDoesntExistsError,
 };
