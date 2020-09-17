@@ -10,7 +10,8 @@ const BookSchema: Schema = new Schema(
     description: String,
     themes: { type: [String], default: [] },
     copies: { type: Number, default: 0 },
-    disponibility: Number,
+    disponibility: { type: Number, default: 0 },
+    loans: { type: Number, default: 0 },
   },
   {
     versionKey: false,

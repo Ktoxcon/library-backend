@@ -9,4 +9,5 @@ export interface IBookModel extends Document {
   themes: Array<string>;
   copies: number;
   disponibility: number;
+  loans: number;
 }
