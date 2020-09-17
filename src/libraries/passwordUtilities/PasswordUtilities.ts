@@ -8,3 +8,10 @@ export const generatePassword = async (password) => {
     });
   });
 };
+
+export const verifyPassword = async (
+  password: any,
+  hash: any
+): Promise<boolean> => {
+  return await bcrypt.compare(password, hash);
+};
