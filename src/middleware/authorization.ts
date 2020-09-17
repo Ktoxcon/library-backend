@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
-import { verify } from "../libraries";
-import { UserError } from "../controller";
+import { displayError, verify } from "../libraries";
+import { AuthenticationError } from "../controller";
 import { IUserModel } from "database";
 
 export const authorization = async (
@@ -13,17 +13,18 @@ export const authorization = async (
     const payload = await verify(authToken);
 
     if (!Boolean(authToken) || (payload as IUserModel).role !== "admin") {
-      res.send({ error: UserError.unauthorizedError });
+      res.send({ error: AuthenticationError.unauthorizedError });
     } else {
       next();
     }
   } catch (err) {
     switch (err.name) {
       case "TokenExpiredError":
-        res.send({ error: UserError.sessionExpiredError });
+        res.send({ error: AuthenticationError.sessionExpiredError });
         break;
       default:
-        console.log(err);
+        console.log("the error was here");
+        displayError(err.name, err.message);
     }
   }
 };
