@@ -8,7 +8,8 @@
   "license": "MIT",
   "private": false,
   "scripts": {
-    "start": "ts-node-dev --respawn --no-notify ./src"
+    "start": "ts-node-dev --respawn --no-notify ./src",
+    "build": "tsc --build"
   },
   "dependencies": {
     "bcrypt": "^5.0.0",
