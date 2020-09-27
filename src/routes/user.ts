@@ -3,4 +3,4 @@ import { AuthenticationController } from "../controller";
 
 export const userRouter = Router();
 
-userRouter.post("/signUp", AuthenticationController.login);
+userRouter.post("/signIn", AuthenticationController.login);
